@@ -1,7 +1,6 @@
 package PunchBot;
 
 import API.APIHandler;
-import API.WikiSearchResponse;
 
 import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
@@ -9,9 +8,6 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,14 +29,12 @@ public class PunchMain {
         commands.put("wiki", event -> event.getMessage().getChannel()
                 .flatMap(channel -> channel.createMessage(SearchWiki(event)))
                 .then());
-
-        commands.put("pping", event -> event.getMessage().getChannel()
-                .flatMap(channel -> channel.createMessage("Pong!"))
-                .then());
     }
 
     public static void main(final String args[]) {
 
+        //Investigate which contructor to use
+        //the Discord4J wiki says to use this, but it is deprecated
         client = new DiscordClientBuilder(args[0]).build();
 
         client.getEventDispatcher().on(MessageCreateEvent.class)
@@ -55,17 +49,20 @@ public class PunchMain {
         initializer();
 
         client.login().block();
-
-
     }
 
+    //Made this a  separate funciton for readability going forwards as this bot grows
     private static void initializer() {
         api = new APIHandler();
     }
 
+    //function to interact with the wikipedia APi
     private static String SearchWiki(MessageCreateEvent event) {
 
+        //get the full test of what is being requested
         String value = event.getMessage().getContent().map(content -> content.substring(5, content.length())).toString();
+
+        //the above code returns Optional[-----]. We only want what is in the brackets
         value = value.substring(9, value.length()-1);
 
 
@@ -74,6 +71,7 @@ public class PunchMain {
              pageExtract = api.getWikiLink(value);
         }
         catch (Exception ex) {
+            //this needs to be handled better
             System.out.println(ex.toString());
         }
 
